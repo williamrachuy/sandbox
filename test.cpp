@@ -5,7 +5,6 @@ void drawSword(void) {
    cout << "        [\n";
    cout << "   @XXXX[{::::::::::::::::::::::>\n";
    cout << "        [\n";
-   
 }
 
 int main(void) {
