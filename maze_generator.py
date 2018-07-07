@@ -1,5 +1,6 @@
 import random
 import pygame
+import pyglet
 pygame.init()
 
 WHITE = (255,255,255)

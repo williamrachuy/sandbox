@@ -1,170 +1,97 @@
-import random
-import pygame
-pygame.init()
+'''
+https://letscodepython.com/blog/2017/12/27/building-guis-wxpython/
+'''
 
-WHITE = (255,255,255)
-GREY = (20,20,20)
-BLACK = (0,0,0)
-PURPLE = (100,0,100)
-RED = (255,0,0)
+import wx
 
-size = (701,701)
-screen = pygame.display.set_mode(size)
+class Interface(wx.Frame):
 
-pygame.display.set_caption("Maze Generator")
+	def __init__(self, parent, title):
 
-done = False
+		super(Interface, self).__init__(parent, title = title)
 
-clock = pygame.time.Clock()
+		try:
+			self.SetIcon(wx.Icon("resources/icons/myIcon.ico", wx.BITMAP_TYPE_ICO))
+		except Exception as e:
+			print("Error importing icon at " + "resources/icons/myIcon.ico")
 
-width = 25
-cols = int(size[0] / width)
-rows = int(size[1] / width)
+		self.setup()
 
-stack = []
+	def setup(self):
 
-class Cell():
-    def __init__(self,x,y):
-        global width
-        self.x = x * width
-        self.y = y * width
-        
-        self.visited = False
-        self.current = False
-        
-        self.walls = [True,True,True,True] # top , right , bottom , left
-        
-        # neighbors
-        self.neighbors = []
-        
-        self.top = 0
-        self.right = 0
-        self.bottom = 0
-        self.left = 0
-        
-        self.next_cell = 0
-    
-    def draw(self):
-        if self.current:
-            pygame.draw.rect(screen,RED,(self.x,self.y,width,width))
-        elif self.visited:
-            pygame.draw.rect(screen,PURPLE,(self.x,self.y,width,width))
-        
-            if self.walls[0]:
-                pygame.draw.line(screen,BLACK,(self.x,self.y),((self.x + width),self.y),1) # top
-            if self.walls[1]:
-                pygame.draw.line(screen,BLACK,((self.x + width),self.y),((self.x + width),(self.y + width)),1) # right
-            if self.walls[2]:
-                pygame.draw.line(screen,BLACK,((self.x + width),(self.y + width)),(self.x,(self.y + width)),1) # bottom
-            if self.walls[3]:
-                pygame.draw.line(screen,BLACK,(self.x,(self.y + width)),(self.x,self.y),1) # left
-    
-    def checkNeighbors(self):
-        #print("Top; y: " + str(int(self.y / width)) + ", y - 1: " + str(int(self.y / width) - 1))
-        if int(self.y / width) - 1 >= 0:
-            self.top = grid[int(self.y / width) - 1][int(self.x / width)]
-        #print("Right; x: " + str(int(self.x / width)) + ", x + 1: " + str(int(self.x / width) + 1))
-        if int(self.x / width) + 1 <= cols - 1:
-            self.right = grid[int(self.y / width)][int(self.x / width) + 1]
-        #print("Bottom; y: " + str(int(self.y / width)) + ", y + 1: " + str(int(self.y / width) + 1))
-        if int(self.y / width) + 1 <= rows - 1:
-            self.bottom = grid[int(self.y / width) + 1][int(self.x / width)]
-        #print("Left; x: " + str(int(self.x / width)) + ", x - 1: " + str(int(self.x / width) - 1))
-        if int(self.x / width) - 1 >= 0:
-            self.left = grid[int(self.y / width)][int(self.x / width) - 1]
-        #print("--------------------")
-        
-        if self.top != 0:
-            if self.top.visited == False:
-                self.neighbors.append(self.top)
-        if self.right != 0:
-            if self.right.visited == False:
-                self.neighbors.append(self.right)
-        if self.bottom != 0:
-            if self.bottom.visited == False:
-                self.neighbors.append(self.bottom)
-        if self.left != 0:
-            if self.left.visited == False:
-                self.neighbors.append(self.left)
-        
-        if len(self.neighbors) > 0:
-            self.next_cell = self.neighbors[random.randrange(0,len(self.neighbors))]
-            return self.next_cell
-        else:
-            return False
+		box = wx.BoxSizer(wx.VERTICAL)
 
-def removeWalls(current_cell,next_cell):
-    x = int(current_cell.x / width) - int(next_cell.x / width)
-    y = int(current_cell.y / width) - int(next_cell.y / width)
-    if x == -1: # right of current
-        current_cell.walls[1] = False
-        next_cell.walls[3] = False
-    elif x == 1: # left of current
-        current_cell.walls[3] = False
-        next_cell.walls[1] = False
-    elif y == -1: # bottom of current
-        current_cell.walls[2] = False
-        next_cell.walls[0] = False
-    elif y == 1: # top of current
-        current_cell.walls[0] = False
-        next_cell.walls[2] = False
+		self.textbox = wx.TextCtrl(self, style = wx.TE_RIGHT)
+		box.Add(self.textbox, flag = wx.EXPAND | wx.TOP | wx.BOTTOM, border = 4)
 
-grid = []
+		grid = wx.GridSizer(5, 4, 2, 2)
 
-for y in range(rows):
-    grid.append([])
-    for x in range(cols):
-        grid[y].append(Cell(x,y))
+		buttons = [
+			'7', '8', '9', '/',
+			'4', '5', '6', '*',
+			'1', '2', '3', '-',
+			'0', '.', 'C', '+',
+			'='
+		]
 
-current_cell = grid[0][0]
-next_cell = 0
+		self.clearFlag = False
 
-# -------- Main Program Loop -----------
-while not done:
-    # --- Main event loop
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            done = True
-    
-    screen.fill(GREY)
-    
-    current_cell.visited = True
-    current_cell.current = True
-    
-    for y in range(rows):
-        for x in range(cols):
-            grid[y][x].draw()
-    
-    next_cell = current_cell.checkNeighbors()
-    
-    if next_cell != False:
-        current_cell.neighbors = []
-        
-        stack.append(current_cell)
-        
-        removeWalls(current_cell,next_cell)
-        
-        current_cell.current = False
-        
-        current_cell = next_cell
-    
-    elif len(stack) > 0:
-        current_cell.current = False
-        current_cell = stack.pop()
-        
-    elif len(stack) == 0:
-        grid = []
-        
-        for y in range(rows):
-            grid.append([])
-            for x in range(cols):
-                grid[y].append(Cell(x,y))
-        
-        current_cell = grid[0][0]
-        next_cell = 0
-    
-    pygame.display.flip()
-    
-    clock.tick(6000)
+		for label in buttons:
+			button = wx.Button(self, -1, label)
+			grid.Add(button, 0, wx.EXPAND)
+			self.Bind(wx.EVT_BUTTON, self.on_button_press, button)
 
-pygame.quit()
+		box.Add(grid, proportion = 1, flag = wx.EXPAND)
+
+		self.SetSizer(box)
+
+	def on_button_press(self, event):
+
+		# Get label of button
+		label = event.GetEventObject().GetLabel()
+		print("Label: " + label)
+
+		# Get the input from the TextCtrl
+		calculation = self.textbox.GetValue()
+
+		# Handle the event based on the button pressed
+		if label == '=': # Calculate the result of the input in the TextCtrl
+
+			self.clearFlag = True			
+
+			# Ignore an empty calculation
+			if not calculation:
+				return
+
+			try:
+				# Calculate the result
+				result = float(eval(calculation))
+			except SyntaxError as err: # Catch any input errors
+				wx.LogError("Invalid syntax({}). Please check your input and try again.".format(calculation))
+				return
+			except NameError as err: # Catch any manually typed errors
+				wx.LogError("There was an error. Plase check your input and try again.")
+				return
+
+			# Show the result
+			self.textbox.SetValue(str(result))
+
+		elif label == 'C': # Clear the TextCtrl
+			self.textbox.SetValue('')
+			self.clearFlag = False
+
+		elif self.clearFlag == True and label.isdigit() == True:
+			self.textbox.SetValue(label)
+			self.clearFlag = False
+
+		else: # 0-9 (and .)
+			# Add the label of the button press on the current calculation in the TextCtrl
+			self.textbox.SetValue(calculation + label)
+			self.clearFlag = False
+
+if __name__ == "__main__":
+	
+	app = wx.App()
+	gui = Interface(None, title = "Calculator")
+	gui.Show()
+	app.MainLoop()
