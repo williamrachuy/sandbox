@@ -14,14 +14,16 @@ board_chars = [
     '.', '.', '.'
 ]
 
+
 class Board(object):
     def __init__(self):
         self.board = board_chars
+        print(self.board)
 
         self.winPatterns = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8],
             [0, 3, 6], [1, 4, 7], [2, 5, 8],
-            [0, 4, 8], [2, 4, 8]
+            [0, 4, 8], [2, 4, 6]
         ]
 
     def printBoard(self):
@@ -41,7 +43,7 @@ class Board(object):
     def checkWin(self, token):
         board = self.board
         for pattern in self.winPatterns:
-            if (	self._checkSameToken(board[pattern[0]], token) and
+            if (    self._checkSameToken(board[pattern[0]], token) and
                  self._checkSameToken(board[pattern[1]], token) and
                  self._checkSameToken(board[pattern[2]], token)):
                 return True
@@ -98,19 +100,31 @@ def playerMove(player, board):
     #     player_name, player_token, player_position, result))
 
 
+def switchPlayers(current_player, players):
+    for player in players:
+        if player is not current_player:
+            return player
+
+
 def playGame():
+    print("\nBeginning new game...")
+    board = Board()
     player1 = Player(token=play_tokens[0])
     player2 = Player(token=play_tokens[1])
-    board = Board()
     winner = None
 
+    current_player = player1
     board.printBoard()
     while (winner == None):
-        playerMove(player=player1, board=board)
+        playerMove(player=current_player, board=board)
         board.printBoard()
-        if (board.checkWin(player1.token) == True):
-            winner = player1
+        if (board.checkWin(current_player.token) == True):
+            winner = current_player
             print("{} wins the game!".format(winner.name))
+            return
+        else:
+            current_player = switchPlayers(
+                current_player=current_player, players=[player1, player2])
 
 
 def checkReplay():
@@ -124,10 +138,6 @@ def checkReplay():
             return False
         else:
             print("I didn't get that.")
-
-
-def playerPrompt():
-    print(">>> ")
 
 
 def main():
