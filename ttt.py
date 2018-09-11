@@ -1,4 +1,4 @@
-import random
+from random import random
 
 play_tokens = ['X', 'O']
 
@@ -25,6 +25,9 @@ class Board(object):
             [0, 3, 6], [1, 4, 7], [2, 5, 8],
             [0, 4, 8], [2, 4, 6]
         ]
+
+    def getBoard(self):
+        return self.board
 
     def printBoard(self):
         rows = [self.board[0:3], self.board[3:6], self.board[6:9]]
@@ -77,11 +80,28 @@ class Board(object):
             return False
 
 
+class Utility(object):
+    def __init__(self):
+        pass
+
+    def _getPositionUtility(self, position):
+        pass
+
+    def getPosition(self, board):
+
+        
+
+
 class Player(object):
-    def __init__(self, token):
+    def __init__(self, token, intellect='human'):
         self.token = token
         self.name = "Player {}".format(token)
-        self.win = False
+        self.intellect = intellect
+        self.utility = None
+        if (self.intellect = 'human'):
+            pass
+        elif (self.intellect in ['stupid', 'intelligent']):
+            self.utility = Utility()
 
     def getToken(self):
         return self.token
@@ -89,12 +109,25 @@ class Player(object):
     def getName(self):
         return self.name
 
+    def getIntellect(self):
+        return self.intellect
 
-def playerMove(player, board):
+    def getMove(self, board_array):
+        intellect = self.intellect
+        utility = self.utility
+        if (intellect == 'human'):
+            position = int(input(">>> "))
+        elif (intellect == 'stupid'):
+            position = self.utility.getPosition()
+        elif (intellect == 'intelligent'):
+            position = self.
+
+
+def playerTurn(player, board):
     player_name = player.getName()
     player_token = player.getToken()
     print("{}, place your token...".format(player_name))
-    player_position = int(input(">>> "))
+    player_position = player.getMove(board_array=board.board)
     result = board.placeToken(token=player_token, position=player_position)
     # print("{0} places {1} at position {2} with outcome {3}".format(
     #     player_name, player_token, player_position, result))
@@ -116,7 +149,7 @@ def playGame():
     current_player = player1
     board.printBoard()
     while (winner == None):
-        playerMove(player=current_player, board=board)
+        playerTurn(player=current_player, board=board)
         board.printBoard()
         if (board.checkWin(current_player.token) == True):
             winner = current_player
