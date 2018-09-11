@@ -1,74 +1,141 @@
 import random
 
+play_tokens = ['X', 'O']
+
+# board_chars = [
+#     '0', '1', '2',
+#     '3', '4', '5',
+#     '6', '7', '8'
+# ]
+
+board_chars = [
+    '.', '.', '.',
+    '.', '.', '.',
+    '.', '.', '.'
+]
 
 class Board(object):
-	def __init__(self):
-		self.board = [
-			'0', '1', '2',
-			'3', '4', '5',
-			'6', '7', '8'
-		]
+    def __init__(self):
+        self.board = board_chars
 
-	def printBoard(self):
-		rows = [self.board[0:3], self.board[3:6], self.board[6:9]]
-		for row in rows:
-			print("{0} {1} {2}".format(row[0], row[1], row[2]))
+        self.winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 8]
+        ]
 
-	def placeToken(self, token, position):
-		if (not (token is 'X' or 'O')):
-			print("Token {} not valid".format(token))
-			return False
-		if (position not in range(0, 9)):
-			print("Position {} not valid".format(position))
-			return False
-		self.board[position] = token
-		return True
+    def printBoard(self):
+        rows = [self.board[0:3], self.board[3:6], self.board[6:9]]
+        print()
+        for row in rows:
+            print("{0} {1} {2}".format(row[0], row[1], row[2]))
+        print()
 
-		pass
+    def placeToken(self, token, position):
+        if (self._checkValidToken(token) and self._checkValidPosition(position) and self._checkValidPlacement(position)):
+            self.board[position] = token
+            return True
+        else:
+            return False
+
+    def checkWin(self, token):
+        board = self.board
+        for pattern in self.winPatterns:
+            if (	self._checkSameToken(board[pattern[0]], token) and
+                 self._checkSameToken(board[pattern[1]], token) and
+                 self._checkSameToken(board[pattern[2]], token)):
+                return True
+        return False
+
+    def _checkValidToken(self, token):
+        if (token in play_tokens):
+            return True
+        else:
+            print("Token {} not valid".format(token))
+            return False
+
+    def _checkValidPosition(self, position):
+        if (position in range(0, 9)):
+            return True
+        else:
+            print("Position {} not valid".format(position))
+            return False
+
+    def _checkValidPlacement(self, position):
+        if (self.board[position] not in play_tokens):
+            return True
+        else:
+            print("Position {} not valid".format(position))
+            return False
+
+    def _checkSameToken(self, token1, token2):
+        if (token1 == token2):
+            return True
+        else:
+            return False
 
 
 class Player(object):
-	def __init__(self, token):
-		self.token = token
+    def __init__(self, token):
+        self.token = token
+        self.name = "Player {}".format(token)
+        self.win = False
 
-	def getToken(self):
-		return self.token
+    def getToken(self):
+        return self.token
 
-	# @property
-	# def token(self):
-	# 	return self._token
+    def getName(self):
+        return self.name
 
-	# @token.setter
-	# def token(self, token):
-	# 	self._token = token
+
+def playerMove(player, board):
+    player_name = player.getName()
+    player_token = player.getToken()
+    print("{}, place your token...".format(player_name))
+    player_position = int(input(">>> "))
+    result = board.placeToken(token=player_token, position=player_position)
+    # print("{0} places {1} at position {2} with outcome {3}".format(
+    #     player_name, player_token, player_position, result))
+
+
+def playGame():
+    player1 = Player(token=play_tokens[0])
+    player2 = Player(token=play_tokens[1])
+    board = Board()
+    winner = None
+
+    board.printBoard()
+    while (winner == None):
+        playerMove(player=player1, board=board)
+        board.printBoard()
+        if (board.checkWin(player1.token) == True):
+            winner = player1
+            print("{} wins the game!".format(winner.name))
+
+
+def checkReplay():
+    while (True):
+        print("Player another game? [ yes | no ]")
+        answer = input(">>> ")
+
+        if (answer == "yes"):
+            return True
+        if (answer == "no"):
+            return False
+        else:
+            print("I didn't get that.")
+
+
+def playerPrompt():
+    print(">>> ")
 
 
 def main():
-	player1 = Player(token='X')
-	player2 = Player(token='O')
-	board = Board()
-
-	board.printBoard()
-	print()
-
-	player_token = player1.getToken()
-	player_position = 4
-	result = board.placeToken(token=player_token, position=player_position)
-	print("Player places {0} at position {1} with outcome {2}".format(
-		player_token, player_position, result))
-	board.printBoard()
-	print()
-
-	player_token = player2.getToken()
-	player_position = 1
-	board.placeToken(token=player_token, position=player_position)
-	print("Player places {0} at position {1} with outcome {2}".format(
-		player_token, player_position, result))
-	board.printBoard()
-	print()
-
-	pass
+    replay = True
+    while (replay == True):
+        playGame()
+        replay = checkReplay()
 
 
 if __name__ == '__main__':
-	main()
+    main()
