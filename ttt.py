@@ -1,4 +1,6 @@
-from random import random
+import random
+from datetime import datetime
+random.seed(datetime.now())
 
 play_tokens = ['X', 'O']
 
@@ -16,8 +18,9 @@ board_chars = [
 
 
 class Board(object):
-    def __init__(self):
-        self.board = board_chars
+    def __init__(self, board):
+        self.board = board[:]
+        print(board_chars)
         print(self.board)
 
         self.winPatterns = [
@@ -88,6 +91,7 @@ class Utility(object):
         pass
 
     def getPosition(self, board):
+        pass
 
         
 
@@ -98,7 +102,7 @@ class Player(object):
         self.name = "Player {}".format(token)
         self.intellect = intellect
         self.utility = None
-        if (self.intellect = 'human'):
+        if (self.intellect == 'human'):
             pass
         elif (self.intellect in ['stupid', 'intelligent']):
             self.utility = Utility()
@@ -112,23 +116,37 @@ class Player(object):
     def getIntellect(self):
         return self.intellect
 
-    def getMove(self, board_array):
+    def getRandomPosition(self, board):
+        board = board.board
+        while (True):
+            random_position = random.randrange(0, 9)
+            if (not (board[random_position] in play_tokens)):
+                return random_position
+
+    def getUtilityPosition(self, board):
+        pass
+
+    def getMove(self, board):
         intellect = self.intellect
-        utility = self.utility
         if (intellect == 'human'):
             position = int(input(">>> "))
         elif (intellect == 'stupid'):
-            position = self.utility.getPosition()
+            position = self.getRandomPosition(board=board)
         elif (intellect == 'intelligent'):
-            position = self.
+            position = self.getUtilityPosition(board=board)
+        else:
+            print("Invalid intellect type \"{}\"".format(intellect))
+        return position
 
 
 def playerTurn(player, board):
     player_name = player.getName()
     player_token = player.getToken()
-    print("{}, place your token...".format(player_name))
-    player_position = player.getMove(board_array=board.board)
-    result = board.placeToken(token=player_token, position=player_position)
+    valid_move = False
+    while (valid_move == False):
+        print("{}, place your token...".format(player_name))
+        player_position = player.getMove(board=board)
+        valid_move = board.placeToken(token=player_token, position=player_position)
     # print("{0} places {1} at position {2} with outcome {3}".format(
     #     player_name, player_token, player_position, result))
 
@@ -141,9 +159,9 @@ def switchPlayers(current_player, players):
 
 def playGame():
     print("\nBeginning new game...")
-    board = Board()
-    player1 = Player(token=play_tokens[0])
-    player2 = Player(token=play_tokens[1])
+    board = Board(board=board_chars)
+    player1 = Player(token=play_tokens[0], intellect='human')
+    player2 = Player(token=play_tokens[1], intellect='stupid')
     winner = None
 
     current_player = player1
