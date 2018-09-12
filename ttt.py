@@ -1,5 +1,6 @@
 import random
 from datetime import datetime
+
 random.seed(datetime.now())
 
 play_tokens = ['X', 'O']
@@ -10,20 +11,17 @@ play_tokens = ['X', 'O']
 #     '6', '7', '8'
 # ]
 
-board_chars = [
-    '.', '.', '.',
-    '.', '.', '.',
-    '.', '.', '.'
-]
+board_chars = []
+empty_char = '-'
+for c in range(0, 9):
+    board_chars.append(empty_char)
+    # board_chars.append(str(c))
 
 
 class Board(object):
     def __init__(self, board):
         self.board = board[:]
-        print(board_chars)
-        print(self.board)
-
-        self.winPatterns = [
+        self.win_patterns = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8],
             [0, 3, 6], [1, 4, 7], [2, 5, 8],
             [0, 4, 8], [2, 4, 6]
@@ -36,8 +34,11 @@ class Board(object):
         rows = [self.board[0:3], self.board[3:6], self.board[6:9]]
         print()
         for row in rows:
-            print("{0} {1} {2}".format(row[0], row[1], row[2]))
+            print(" {0} {1} {2} ".format(row[0], row[1], row[2]))
         print()
+
+    def getWinPatterns(self):
+        return self.win_patterns
 
     def placeToken(self, token, position):
         if (self._checkValidToken(token) and self._checkValidPosition(position) and self._checkValidPlacement(position)):
@@ -47,11 +48,12 @@ class Board(object):
             return False
 
     def checkWin(self, token):
-        board = self.board
-        for pattern in self.winPatterns:
-            if (    self._checkSameToken(board[pattern[0]], token) and
-                 self._checkSameToken(board[pattern[1]], token) and
-                 self._checkSameToken(board[pattern[2]], token)):
+        board = self.getBoard()
+        win_patterns = self.getWinPatterns()
+        for pattern in self.win_patterns:
+            if (self._checkSameToken(board[pattern[0]], token) and
+                    self._checkSameToken(board[pattern[1]], token) and
+                    self._checkSameToken(board[pattern[2]], token)):
                 return True
         return False
 
@@ -82,18 +84,13 @@ class Board(object):
         else:
             return False
 
-
-class Utility(object):
-    def __init__(self):
-        pass
-
-    def _getPositionUtility(self, position):
-        pass
-
-    def getPosition(self, board):
-        pass
-
-        
+    def getEmptyPositions(self):
+        board_array = self.board
+        empty_positions = []
+        for position in range(0, 9):
+            if (board_array[position] == empty_char):
+                empty_positions.append(position)
+        return empty_positions
 
 
 class Player(object):
@@ -101,11 +98,19 @@ class Player(object):
         self.token = token
         self.name = "Player {}".format(token)
         self.intellect = intellect
-        self.utility = None
-        if (self.intellect == 'human'):
-            pass
-        elif (self.intellect in ['stupid', 'intelligent']):
-            self.utility = Utility()
+
+    def _checkValidPositionStr(self, position):
+        positions_str = []
+        for n in range(0, 9):
+            positions_str.append(str(n))
+        if (str(position) not in positions_str):
+            print("Invalid position - try again...")
+            return False
+        else:
+            return True
+
+    def _getUtilityValue(self, board, position):
+        pass
 
     def getToken(self):
         return self.token
@@ -117,38 +122,48 @@ class Player(object):
         return self.intellect
 
     def getRandomPosition(self, board):
-        board = board.board
-        while (True):
-            random_position = random.randrange(0, 9)
-            if (not (board[random_position] in play_tokens)):
-                return random_position
+        empty_positions = board.getEmptyPositions()
+        position = random.choice(empty_positions)
+        return position
 
     def getUtilityPosition(self, board):
-        pass
+        board_array = board.board
+        win_patterns = board.win_patterns
+        token = self.token
+        pos_util = []
+        empty_positions = board.getEmptyPositions()
+        for position in empty_positions:
+            utility = _getUtilityValue(board=board, position=position)
+            pos_util.append([position, utility])
+        for pair in pos_util:
+            pass
 
     def getMove(self, board):
         intellect = self.intellect
         if (intellect == 'human'):
-            position = int(input(">>> "))
+            valid = False
+            while (valid == False):
+                position = input(">>> ")
+                valid = self._checkValidPositionStr(position)
         elif (intellect == 'stupid'):
             position = self.getRandomPosition(board=board)
         elif (intellect == 'intelligent'):
             position = self.getUtilityPosition(board=board)
         else:
             print("Invalid intellect type \"{}\"".format(intellect))
-        return position
+        return int(position)
 
 
 def playerTurn(player, board):
     player_name = player.getName()
     player_token = player.getToken()
+    player_intellect = player.getIntellect()
     valid_move = False
     while (valid_move == False):
-        print("{}, place your token...".format(player_name))
+        print("{0} [{1}], place your token...".format(player_name, player_intellect))
         player_position = player.getMove(board=board)
         valid_move = board.placeToken(token=player_token, position=player_position)
-    # print("{0} places {1} at position {2} with outcome {3}".format(
-    #     player_name, player_token, player_position, result))
+        print("{0} places {1} at position {2} with outcome {3}".format(player_name, player_token, player_position, valid_move))
 
 
 def switchPlayers(current_player, players):
@@ -171,7 +186,10 @@ def playGame():
         board.printBoard()
         if (board.checkWin(current_player.token) == True):
             winner = current_player
-            print("{} wins the game!".format(winner.name))
+            print("{0} [{1}] wins the game!".format(winner.name, winner.intellect))
+            return
+        elif (len(board.getEmptyPositions()) == 0):
+            print("Tie game.")
             return
         else:
             current_player = switchPlayers(
@@ -180,12 +198,12 @@ def playGame():
 
 def checkReplay():
     while (True):
-        print("Player another game? [ yes | no ]")
+        print("Play again? [ yes | no ]")
         answer = input(">>> ")
 
-        if (answer == "yes"):
+        if (answer in ['yes', 'Yes', 'YES', 'y', 'Y']):
             return True
-        if (answer == "no"):
+        if (answer in ['no', 'No', 'NO', 'n', 'N']):
             return False
         else:
             print("I didn't get that.")
@@ -196,6 +214,7 @@ def main():
     while (replay == True):
         playGame()
         replay = checkReplay()
+    print("Goodbye!")
 
 
 if __name__ == '__main__':
