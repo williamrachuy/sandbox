@@ -7,7 +7,7 @@ locations = ['on the bed', 'in the backyard', 'in the living room', 'in the kitc
 primaries = ['sanding', 'sitting', 'laying down', 'walking around', 'sleeping']
 secondaries = ['whining', 'growling', 'yawning', 'barking', 'panting', 'sniffing']
 hungers = ['full', 'satisfied', 'peckish', 'hungry', 'very hungry']
-actions = ['Woof!', 'Bark!', '<Whining...>', '<Groaning...>', '<Tippy taps...>', '<Demon noises!>', '<Playing with Big Bear...>']
+# actions = ['Woof!', 'Bark!', '<Whining...>', '<Groaning...>', '<Tippy taps...>', '<Demon noises!>', '<Playing with Big Bear...>']
 objects = ['a chair', 'the table', 'a pillow', 'the sheets', 'a cabinet', 'some vines']
 modifiers = ['beneath', 'behind', 'inside', 'under']
 situations = ['trapped']
@@ -18,7 +18,7 @@ actions_sad		= ['<Sighs...>', '<Moans...>', '<Wants attention...>']
 actions_upset	= ['<Wnines...>', '<Groans...>', '<Angrily> Wooorwooorwoor!!! >8^(']
 actions_tired	= ['<Yawns...>', '<Nesting...>']
 actions_vexed	= ['<Panting...>', '<Demon noises!>']
-actions_calm	= ['<Tippy taps...>', '<Looking around...>', '<Goes poopies.>']
+actions_calm	= ['<Tippy taps...>', '<Looking around...>']
 
 
 mood_based_actions = {
@@ -95,9 +95,15 @@ class Dog(object):
 		ret_string = "{0} is {1}.".format(self.name, self.hunger)
 		return ret_string
 
+	def _hunger(self):
+		return self.hunger
+
 	def getMood(self):
 		ret_string = "{0} is {1}.".format(self.name, self.mood)
 		return ret_string
+
+	def _mood(self):
+		return self.mood
 
 	def getAge(self):
 		ret_string = "{0} is {1} years old.".format(self.name, self.age)
@@ -108,6 +114,9 @@ class Dog(object):
 			action = random.choice(mood_based_actions[self.mood])
 		self.last_action = action
 		return action
+
+	def _lastAction(self):
+		return self.last_action
 
 	def updateMood(self, mood=None):
 		if (mood is None):

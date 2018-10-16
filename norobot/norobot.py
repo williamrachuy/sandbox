@@ -10,6 +10,7 @@ default_channel_id = 'Norobot'
 minutes = 60
 poopie_multiplier = 3
 poopie_count = 0
+tug_count = 0
 
 def saveObject(obj, filename):
 	with open(filename, 'wb') as output:  # Overwrites any existing file.
@@ -46,6 +47,7 @@ except:
 @client.event
 async def on_message(message):
 	global poopie_count
+	global tug_count
 	# we do not want the bot to reply to itself
 	if message.author == client.user:
 		return
@@ -79,17 +81,21 @@ async def on_message(message):
 		msg = "{}".format(noro.getAge())
 		await client.send_message(message.channel, msg)
 	elif (msg_cont.find('noro feed') >= 0):
-		noro.updateHunger()
-		noro.updateAffection(person=message.author.mention, amount=random.choice(range(1, 4)))
-		msg = "{0.author.mention} fed Noro.\n".format(message) + noro.getHunger() + "\n" + noro.updateAction('Woof!')
+		if (noro._hunger() != 'full'):
+			noro.updateHunger()
+			noro.updateAffection(person=message.author.mention, amount=random.choice(range(1, 5)))
+			msg = "{0.author.mention} fed Noro.\n".format(message) + noro.getHunger() + "\n" + noro.updateAction('Woof!')
+		else:
+			msg = "Noro isn't hungry. He didn't eat anything."
+			noro.updateAffection(person=message.author.mention, amount=random.choice(range(-2, 1)))
 		await client.send_message(message.channel, msg)
 	elif (msg_cont.find('pass time') >= 0):
 		noro.updateStatus()
 		msg = "Time passes for Noro..."
 		await client.send_message(message.channel, msg)
-	elif (msg_cont.find('noro pet') >= 0):
+	elif ((msg_cont.find('noro') >= 0) and any(x in msg_cont for x in ['good boy', 'pet'])):
 		noro.updateAffection(person=message.author.mention, amount=random.choice(range(-1, 5)))
-		msg = "{0.author.mention} pet Noro.".format(message)
+		msg = "{0.author.mention} uplifts Noro.".format(message)
 		if ((noro.getMood() in ['Noro is sad.', 'Noro is upset.', 'Noro is vexed.']) and (random.choice(range(0, 5)) > 3)):
 			noro.updateMood(mood=random.choice(['happy', 'tired', 'calm']))
 			msg += " Noro feels better."
@@ -149,7 +155,27 @@ async def on_message(message):
 	elif (msg_cont.find('noro admin 3poopie') >= 0):
 		poopie_count = poopie_count + 3
 		msg = "Incremented poopie_count +3... poopie_count = {}".format(str(poopie_count))
+		if (poopie_count > 10):
+			msg += "\nIt stinks! There are too many poopies in the yard. Someone should clean them up..."
+			noro.updateMood(mood='sad')
+			msg += "\n" + noro.getMood()
 		await client.send_message(message.channel, msg)
+	elif (msg_cont.find('noro tug') >= 0):
+		if (noro._mood() not in ['sad', 'upset', 'vexed']):
+			if (noro._lastAction() == '<Tugging...>'):
+				tug_count -= 1
+				noro.updateAffection(person=message.author.mention, amount=1)
+				if (tug_count == 0):
+					noro.updateMood(mood='happy')
+					msg = "Noro is finished tugging. He's so happy!"
+			else:
+				noro.updateAction(action='<Tugging...>')
+				tug_count = random.choice(range(3, 16))
+				msg = "Noro tugs back!"
+		else:
+			msg = "Noro doesn't feel like playing right now."
+		await client.send_message(message.channel, msg)
+
 
 
 	saveObject(obj=noro, filename=noro_file)
@@ -191,7 +217,7 @@ async def actionTask():
 	target_channel = get_channel(client.get_all_channels(), 'norobot')
 	while not client.is_closed:
 		await asyncio.sleep(random.choice(range(5*minutes, 120*minutes)))
-		if (random.choice(range(0, 20)) > 18):
+		if (random.choice(range(0, 100)) >= 94):
 			num_actions = random.choice(range(5, 10))
 			msg = "Noro is throwing a fit!"
 			await client.send_message(target_channel, msg)
@@ -199,8 +225,8 @@ async def actionTask():
 			num_actions = random.choice(range(1, 3))
 		members = client.get_all_members()
 		for member in members:
-			if (member.name != 'norobot'):
-				noro.updateAffection(person=member.mention, amount=poopie_multiplier*(0 - num_actions))
+			if (member.name != 'Norobot'):
+				noro.updateAffection(person=member.mention, amount=poopie_multiplier*(0 - 1))
 		for action in range(num_actions):
 			await asyncio.sleep(random.choice(range(2, 10)))
 			msg = noro.updateAction()
